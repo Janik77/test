@@ -26,32 +26,28 @@ router.get('/', auth, async(req, res) => {
 
 
 router.post('/', auth, async(req, res) => {
-    try{
-    
+    try {
         const connection = await mysql.createConnection(config);
         const tests = await testing.getUserTests(req.user.id);
-        if( tests.length == 3)
-        {
-            fs.unlinkSync(path.join(__dirname, `../tests/${tests[0].file_name}`));
+
+        if (tests.length === 3) {
+            const filePath = path.join(__dirname, `../tests/${tests[0].file_name}`);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
             await testing.removeTest(tests[0].id);
-            
         }
 
-        if(!req.file)
-        {
+        if (!req.file) {
             return res.send('Ошибка при загрузке файла');
         }
-     
+
         await connection.execute(`INSERT INTO tests SET id="${uuid()}", userId="${req.user.id}", name="${req.body.test_name}", file_name="${req.file.filename}", count="${req.body.count}", cycle="${0}"`);
         connection.end();
         res.redirect('/tests');
-    }
-    catch(e)
-    {
+    } catch (e) {
         console.log(e);
-
     }
-    
 });
 
 
